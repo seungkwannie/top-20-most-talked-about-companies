@@ -91,20 +91,27 @@ if st.session_state.show_results:
 
     st.divider()
 
-    # Display the full ranking beautifully in tabs
     tab1, tab2 = st.tabs(["📊 Data View", "📜 Full Ranking List"])
 
     with tab1:
-        # Convert to dictionary or DataFrame for Streamlit's native chart/table
         import pandas as pd
 
-        df = pd.DataFrame(processed_news, columns=["Company", "Mentions"]).set_index("Company")
+        df = pd.DataFrame(processed_news, columns=["Company", "Mentions"])
 
-        # Interactive Bar Chart
-        st.bar_chart(df, color="#3B82F6")
+        df = df.sort_values(by="Mentions", ascending=True)
+
+        df["Company"] = df["Company"].str.replace(", Inc.", "", case=False).str.replace(" Inc.", "", case=False)
+        df["Company"] = df["Company"].str.replace(", N.V.", "", case=False).str.replace(" Corp.", "", case=False)
+
+        st.bar_chart(
+            data=df,
+            x="Mentions",
+            y="Company",
+            color="#3B82F6",
+            use_container_width=True
+        )
 
     with tab2:
-        # Loop through the rest of the list cleanly
         for rank, (company, mentions) in enumerate(processed_news, start=1):
             st.write(f"**{rank}. {company}** — `{mentions} mentions`")
 

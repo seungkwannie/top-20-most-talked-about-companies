@@ -1,6 +1,8 @@
 import data_ingestor, nlp_processor
 import streamlit as st
 import streamlit as pd
+import altair as alt
+import pandas as pd
 
 # st.title("TOP 20 MOST TALKED ABOUT COMPANIES")
 #
@@ -94,22 +96,41 @@ if st.session_state.show_results:
     tab1, tab2 = st.tabs(["📊 Data View", "📜 Full Ranking List"])
 
     with tab1:
-        import pandas as pd
-
+        # 1. Clean up and sort the data into a DataFrame
         df = pd.DataFrame(processed_news, columns=["Company", "Mentions"])
-
         df = df.sort_values(by="Mentions", ascending=True)
 
-        df["Company"] = df["Company"].str.replace(", Inc.", "", case=False).str.replace(" Inc.", "", case=False)
-        df["Company"] = df["Company"].str.replace(", N.V.", "", case=False).str.replace(" Corp.", "", case=False)
-
-        st.bar_chart(
-            data=df,
-            x="Mentions",
-            y="Company",
-            color="#3B82F6",
-            use_container_width=True
+        # Clean up corporate suffixes for cleaner display
+        df["Company"] = (
+            df["Company"]
+            .str.replace(", Inc.", "", case=False)
+            .str.replace(" Inc.", "", case=False)
+            .str.replace(", N.V.", "", case=False)
+            .str.replace(" Corp.", "", case=False)
         )
+
+        chart = (
+            alt.Chart(df)
+            .mark_bar(color="#3B82F6")
+            .encode(
+                x=alt.X(
+                    "Mentions:Q",
+                    axis=alt.Axis(
+                        labelAngle=0,
+                        title="Mentions",
+                    ),
+                ),
+                y=alt.Y(
+                    "Company:N",
+                    sort="-x",
+                    axis=alt.Axis(title=None),
+                ),
+                tooltip=["Company", "Mentions"],
+            )
+            .properties(height=500)
+        )
+
+        st.altair_chart(chart, use_container_width=True)
 
     with tab2:
         for rank, (company, mentions) in enumerate(processed_news, start=1):

@@ -1,6 +1,5 @@
 import data_ingestor, nlp_processor
 import streamlit as st
-import streamlit as pd
 import altair as alt
 import pandas as pd
 
@@ -20,7 +19,6 @@ import pandas as pd
 
 st.set_page_config(page_title="Company Trends", page_icon="📈", layout="centered")
 
-# Custom CSS for a polished UI
 st.markdown(
     """
     <style>

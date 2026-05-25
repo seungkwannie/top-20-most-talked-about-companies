@@ -18,7 +18,6 @@ import pandas as pd
 #
 # st.button("Show Top 20 Companies", on_click=top_20_companies)
 
-# Set page configuration for a modern look
 st.set_page_config(page_title="Company Trends", page_icon="📈", layout="centered")
 
 # Custom CSS for a polished UI
@@ -44,22 +43,18 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# App Title
 st.markdown('<div class="main-title">📈 TOP 20 MOST TALKED ABOUT COMPANIES</div>', unsafe_allow_html=True)
 st.write("Discover which companies are dominating the headlines right now.")
 st.divider()
 
-# Initialize session state for tracking button click
 if "show_results" not in st.session_state:
     st.session_state.show_results = False
 
-# Layout: Sidebar or top button
 if st.button("🔄 Fetch & Analyze Live News", type="primary", use_container_width=True):
     st.session_state.show_results = True
 
 # Display results
 if st.session_state.show_results:
-    # Use status container for a beautiful loading experience
     with st.status("Analyzing live news feeds...", expanded=True) as status:
         st.write("Fetching articles from sources...")
         news = data_ingestor.fetch_trending_news()
@@ -69,10 +64,8 @@ if st.session_state.show_results:
 
         status.update(label="Analysis complete!", state="complete", expanded=False)
 
-    # Layout Split: Top 3 Cards vs full list
     st.subheader("🏆 Top Trending Leaders")
 
-    # Showcase top 3 dynamically in columns
     top_3 = processed_news[:3]
     cols = st.columns(3)
     medals = ["🥇", "🥈", "🥉"]
@@ -96,11 +89,9 @@ if st.session_state.show_results:
     tab1, tab2 = st.tabs(["📊 Data View", "📜 Full Ranking List"])
 
     with tab1:
-        # 1. Clean up and sort the data into a DataFrame
         df = pd.DataFrame(processed_news, columns=["Company", "Mentions"])
         df = df.sort_values(by="Mentions", ascending=True)
 
-        # Clean up corporate suffixes for cleaner display
         df["Company"] = (
             df["Company"]
             .str.replace(", Inc.", "", case=False)

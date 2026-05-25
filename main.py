@@ -15,4 +15,3 @@ def top_20_companies():
 
 st.button("Show Top 20 Companies", on_click=top_20_companies)
 
-

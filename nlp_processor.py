@@ -14,19 +14,13 @@ def process_text_frequencies(raw_text_pool):
         text_to_process = ""
 
         if isinstance(item, dict):
-            # If it's a dictionary (like a NewsAPI or ScrapingBee article response),
-            # combine the title and description together into one long string
             title = item.get("title") or ""
             description = item.get("description") or item.get("content") or ""
             text_to_process = f"{title} {description}"
         elif isinstance(item, str):
-            # If it's already a clean string, use it directly
             text_to_process = item
         else:
-            # Skip any unexpected data types entirely
             continue
-
-        # 3. Safe to lower-case and split now that we guaranteed it's a string
         words_list = text_to_process.lower().split()
 
         for individual_word in words_list:

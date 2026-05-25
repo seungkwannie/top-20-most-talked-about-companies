@@ -1,4 +1,5 @@
 import os, dotenv
+import streamlit as st
 
 MAX_NEWS_ARTICLES = 100
 DISPLAY_LIMIT = 20
@@ -128,15 +129,24 @@ COMPANY_LOOKUP = {
     "constellation": "Constellation Energy Corp.",
 }
 
-if os.path.exists(".env"):
+if hasattr(st, "secrets") and "NEWS_API_KEY" in st.secrets:
+    NEWS_API_KEY = st.secrets["NEWS_API_KEY"]
+    SCRAPINGBEE_API_KEY = st.secrets.get("SCRAPINGBEE_API_KEY", "No api key.")
+
+elif os.path.exists(".env"):
     dotenv.load_dotenv()
-    NEWS_API_KEY = os.environ.get("NEWS_API_KEY") if os.environ.get("NEWS_API_KEY") != "your_news_api_key_here" else "No api key."
-    SCRAPINGBEE_API_KEY = os.environ.get("SCRAPINGBEE_API_KEY") if os.environ.get("SCRAPINGBEE_API_KEY") != "your_scrapingbee_key_here" else "No api key."
+    NEWS_API_KEY = os.environ.get("NEWS_API_KEY") if os.environ.get(
+        "NEWS_API_KEY") != "your_news_api_key_here" else "No api key."
+    SCRAPINGBEE_API_KEY = os.environ.get("SCRAPINGBEE_API_KEY") if os.environ.get(
+        "SCRAPINGBEE_API_KEY") != "your_scrapingbee_key_here" else "No api key."
+
     if NEWS_API_KEY == "No api key." or SCRAPINGBEE_API_KEY == "No api key.":
         raise NotImplementedError("No api keys found in .env file.")
-else:
-    raise NotImplementedError(".env File not found.")
 
+else:
+    raise NotImplementedError("Configuration Error: Neither .env file nor Streamlit Secrets were found.")
+
+# This allows your local print testing to still work fine
 if __name__ == '__main__':
     print(f"NEWS_API_KEY: {NEWS_API_KEY}")
     print(f"SCRAPINGBEE_API_KEY: {SCRAPINGBEE_API_KEY}")

@@ -9,7 +9,7 @@ def top_20_companies():
     st.header("Processing news articles...")
     processed_news = nlp_processor.process_text_frequencies(news)
     st.header("Displaying results...")
-    # print("\n=== TOP 20 MOST TALKED ABOUT COMPANIES ===")
+    # st.header("TOP 20 MOST TALKED ABOUT COMPANIES ===")
     for rank, (company, mentions) in enumerate(processed_news, start=1):
         st.header(f"{rank}. {company} — Mentioned {mentions} times")
 

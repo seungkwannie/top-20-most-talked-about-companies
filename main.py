@@ -110,4 +110,3 @@ if st.session_state.show_results:
     with tab2:
         for rank, (company, mentions) in enumerate(processed_news, start=1):
             st.write(f"**{rank}. {company}** — `{mentions} mentions`")
-

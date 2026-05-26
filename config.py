@@ -300,3 +300,4 @@ else:
 # Local print testing
 if __name__ == '__main__':
     print(f"FINNHUB_API_KEY: {FINNHUB_API_KEY}")
+

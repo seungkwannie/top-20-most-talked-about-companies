@@ -164,7 +164,7 @@ from datetime import datetime, timedelta
 
 def fetch_trending_news():
     # 1. Set up Marketaux base configurations
-    url = "https://api.marketaux.com/v1/news/all"
+    url = "https://api.marketaux.com/v1/entity/stats"  # <--- Notice the change here
 
     # Strict 48-hour time boundary calculation
     current_time = datetime.utcnow()  # Marketaux explicitly operates in UTC
@@ -179,10 +179,7 @@ def fetch_trending_news():
     params = {
         "api_token": config.MARKETAUX_API_TOKEN,
         "published_after": published_after_str,
-        "filter_entities": "true",
-        "language": "en",
-        "limit": 25,  # Maximize the payload limit for the call
-        "symbols": ",".join(portfolio_tickers)
+        "symbols": ",".join(portfolio_tickers),
     }
 
     try:

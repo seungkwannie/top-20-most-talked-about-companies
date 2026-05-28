@@ -169,7 +169,7 @@ def fetch_trending_news():
 
     # Strict 48-hour time boundary calculation
     current_time = datetime.utcnow()  # Marketaux explicitly operates in UTC
-    time_window_start = current_time - timedelta(days=7)
+    time_window_start = current_time - timedelta(days=14)
 
     # Format to ISO 8601 string required by Marketaux (e.g., 2026-05-26T15:30)
     published_after_str = time_window_start.strftime("%Y-%m-%dT%H:%M")

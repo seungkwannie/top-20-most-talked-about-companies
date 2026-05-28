@@ -161,11 +161,12 @@ if st.session_state.show_results:
 
         status.update(label="Analysis complete!", state="complete", expanded=False)
 
-    # --- NEW: Filter out companies with 0 mentions so your UI looks clean ---
+    # --- Filter out companies with 0 mentions so your UI looks clean ---
     active_trends = [item for item in processed_news if item[1] > 0]
 
     if not active_trends:
-        st.warning("⚠️ No tracked company mentions found in the current live news window. Try fetching again in a few minutes or widen your search criteria!")
+        st.warning(
+            "⚠️ No tracked company mentions found in the current live news window. Try fetching again in a few minutes or widen your search criteria!")
     else:
         st.subheader("🏆 Top Trending Leaders")
 
@@ -197,15 +198,17 @@ if st.session_state.show_results:
             df = pd.DataFrame(active_trends, columns=["Company", "Mentions"])
             df = df.sort_values(by="Mentions", ascending=True)
 
-            # Clean up corporate suffixes for beautiful chart labels
+            # FIX: Clean up corporate suffixes safely using regex boundaries (\b)
+            # This prevents strings from being wiped out or mangled into empty spaces
             df["Company"] = (
                 df["Company"]
-                .str.replace(", Inc.", "", case=False)
-                .str.replace(" Inc.", "", case=False)
-                .str.replace(", N.V.", "", case=False)
-                .str.replace(" Corp.", "", case=False)
-                .str.replace(".com Inc.", "", case=False)
+                .str.replace(r",?\s*\b(Inc|Corp|N\.V|Co|Ltd|Holdings?|Platforms?|Technologies?)\b\.?", "", case=False,
+                             regex=True)
+                .str.strip()
             )
+
+            # Final fallback safeguard: If regex somehow leaves a blank space, use a default value
+            df["Company"] = df["Company"].replace("", "Unknown Company")
 
             chart = (
                 alt.Chart(df)
@@ -225,7 +228,7 @@ if st.session_state.show_results:
                     ),
                     tooltip=["Company", "Mentions"],
                 )
-                .properties(height=max(150, len(df) * 25)) # Dynamic height based on number of active companies
+                .properties(height=max(150, len(df) * 25))  # Dynamic height based on number of active companies
             )
 
             st.altair_chart(chart, use_container_width=True)

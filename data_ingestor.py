@@ -181,7 +181,7 @@ def fetch_trending_news():
         "published_after": published_after_str,
         "filter_entities": "true",
         "language": "en",
-        "limit": 1000,  # Maximize the payload limit for the call
+        "limit": 100,  # Maximize the payload limit for the call
         "symbols": ",".join(portfolio_tickers)
     }
 

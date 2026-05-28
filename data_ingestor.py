@@ -162,52 +162,55 @@ import requests
 import config
 from datetime import datetime, timedelta
 
+
 def fetch_trending_news():
     # 1. Set up Marketaux base configurations
     url = "https://api.marketaux.com/v1/news/all"
 
-    # Strict 48-hour time boundary calculation
+    # Set up a wide 7-day time window to maximize available news data
     current_time = datetime.utcnow()  # Marketaux explicitly operates in UTC
     time_window_start = current_time - timedelta(days=7)
 
-    # Format to ISO 8601 string required by Marketaux (e.g., 2026-05-26T15:30)
+    # Format to the exact ISO 8601 string format required by Marketaux
     published_after_str = time_window_start.strftime("%Y-%m-%dT%H:%M")
 
-    # Get portfolio tickers from your config file to use as a local whitelist filter
+    # Extract all uppercase ticker symbols from your config whitelist (AAPL, TSLA, NVDA, etc.)
     portfolio_tickers = [key for key in config.COMPANY_LOOKUP.keys() if key.isupper()]
 
+    # Build parameters optimized for high-volume free tier aggregation
     params = {
         "api_token": config.MARKETAUX_API_TOKEN,
         "published_after": published_after_str,
         "filter_entities": "true",
         "language": "en",
-        "limit": 100,  # Maximize the payload limit for the call
+        "limit": 25,  # Free tier single-request maximum limit
         "symbols": ",".join(portfolio_tickers)
+        # CRITICAL: Forces the API to ONLY return articles about your tracked stocks
     }
 
     try:
-        # 2. Make the API call to Marketaux
+        # 2. Execute the API request
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
 
-        # Catch Marketaux error payloads if they return 200 OK but contain error codes
+        # Safely handle API error messages returned within valid 200 OK responses
         if "error" in data:
-            print(f"Marketaux Error Notice: {data['error']['message']}")
+            print(f"Marketaux API Error: {data['error']['message']}")
             return []
 
-        # ==================== INSERTED HERE ====================
-        # Right at the end of your fetch_trending_news try block:
+        # 3. Extract the raw article payload array
         articles = data.get("data", [])
-        return articles  # Returns the raw objects list perfectly
-        # =======================================================
+
+        # Return the clean list of article dictionaries directly to main.py
+        return articles
 
     except requests.exceptions.RequestException as e:
-        print(f"Could not fetch Marketaux news data: {e}")
+        print(f"Could not connect to Marketaux server: {e}")
         return []
 
 
 if __name__ == '__main__':
-    # Ensure config.MARKETAUX_API_TOKEN exists in your actual config file.
-    news = fetch_trending_news()
-    print(f"Collected {len(news)} total text elements.")
+    # Simple standalone local connection testing
+    test_articles = fetch_trending_news()
+    print(f"Successfully ingested {len(test_articles)} raw article dictionary objects.")

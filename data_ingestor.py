@@ -162,27 +162,16 @@ import requests
 import config
 from datetime import datetime, timedelta
 
-
 def fetch_trending_news():
     # 1. Set up Marketaux base configurations
     url = "https://api.marketaux.com/v1/news/all"
 
     # Strict 48-hour time boundary calculation
     current_time = datetime.utcnow()  # Marketaux explicitly operates in UTC
-    time_window_start = current_time - timedelta(days=14)
+    time_window_start = current_time - timedelta(days=7)
 
     # Format to ISO 8601 string required by Marketaux (e.g., 2026-05-26T15:30)
     published_after_str = time_window_start.strftime("%Y-%m-%dT%H:%M")
-
-    # Build parameters optimized for Marketaux
-    # 'filter_entities=true' ensures we only fetch articles that actually tagged companies
-    params = {
-        "api_token": config.MARKETAUX_API_TOKEN,  # Ensure this matches your new config variable
-        "published_after": published_after_str,
-        "filter_entities": "true",
-        "language": "en",
-        "limit": 3,  # Free tier max limit per request is usually 3 (up to 25 on paid)
-    }
 
     # Get portfolio tickers from your config file to use as a local whitelist filter
     portfolio_tickers = [key for key in config.COMPANY_LOOKUP.keys() if key.isupper()]
@@ -193,9 +182,8 @@ def fetch_trending_news():
         "filter_entities": "true",
         "language": "en",
         "limit": 25,  # Maximize the payload limit for the call
-        "symbols": ",".join(portfolio_tickers)  # <-- ADD THIS CRITICAL LINE
+        "symbols": ",".join(portfolio_tickers)
     }
-    news_pool = []
 
     try:
         # 2. Make the API call to Marketaux
@@ -208,34 +196,15 @@ def fetch_trending_news():
             print(f"Marketaux Error Notice: {data['error']['message']}")
             return []
 
-        # Marketaux wraps news arrays inside the "data" key
+        # ==================== INSERTED HERE ====================
+        # Right at the end of your fetch_trending_news try block:
         articles = data.get("data", [])
-
-        # 3. Filter and process the articles in Python
-        for article in articles:
-            headline = article.get("title", "")
-            summary = article.get("description", "")  # Marketaux uses 'description' for the snippet summary
-
-            # Inspect what companies are tagged in this article
-            entities = article.get("entities", [])
-            article_tickers = {entity.get("symbol").upper() for entity in entities if entity.get("symbol")}
-
-            # Check if this article mentions ANY of your portfolio tickers (Tesla, Apple, etc.)
-            is_portfolio_news = not article_tickers.isdisjoint(portfolio_tickers)
-
-            # If it matches your portfolio, OR if it's general major market news containing entities
-            if is_portfolio_news or not portfolio_tickers:
-                if headline:
-                    news_pool.append(headline)
-                if summary:
-                    news_pool.append(summary)
+        return articles  # Returns the raw objects list perfectly
+        # =======================================================
 
     except requests.exceptions.RequestException as e:
         print(f"Could not fetch Marketaux news data: {e}")
         return []
-
-    # Enforce your maximum news cap from the configuration file
-    return news_pool[:config.MAX_NEWS_ARTICLES * 2]
 
 
 if __name__ == '__main__':

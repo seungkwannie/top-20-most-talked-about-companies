@@ -158,3 +158,4 @@ if __name__ == '__main__':
     # Ensure config.ALPHA_VANTAGE_API_KEY exists in your actual config file.
     news = fetch_trending_news()
     print(f"Collected {len(news)} total text elements.")
+

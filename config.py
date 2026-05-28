@@ -302,3 +302,4 @@ else:
 # Local print testing
 if __name__ == '__main__':
     print(f"ALPHA_VANTAGE_API_KEY: {ALPHA_VANTAGE_API_KEY}")
+

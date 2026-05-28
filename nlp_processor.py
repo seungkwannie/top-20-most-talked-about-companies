@@ -77,3 +77,4 @@ def process_text_frequencies(raw_text_pool):
             counter[official_name] = 0
 
     return counter.most_common(config.DISPLAY_LIMIT)
+

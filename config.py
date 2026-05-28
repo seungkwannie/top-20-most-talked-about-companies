@@ -3,8 +3,8 @@
 #
 # MAX_NEWS_ARTICLES = 100
 # DISPLAY_LIMIT = 20
-# NEWS_API_KEY = None
-# SCRAPINGBEE_API_KEY = None
+# FINNHUB_API_KEY = None  # Changed variable name to reflect Finnhub
+#
 # COMPANY_LOOKUP = {
 #     "AAPL": "Apple Inc.",
 #     "Apple": "Apple Inc.",
@@ -85,7 +85,6 @@
 #     "NFLX": "Netflix Inc.",
 #     "Netflix": "Netflix Inc.",
 #     "netflix": "Netflix Inc.",
-#
 #     "BABA": "Alibaba Group Holding Ltd.",
 #     "Alibaba": "Alibaba Group Holding Ltd.",
 #     "alibaba": "Alibaba Group Holding Ltd.",
@@ -129,34 +128,32 @@
 #     "constellation": "Constellation Energy Corp.",
 # }
 #
-# if hasattr(st, "secrets") and "NEWS_API_KEY" in st.secrets:
-#     NEWS_API_KEY = st.secrets["NEWS_API_KEY"]
-#     SCRAPINGBEE_API_KEY = st.secrets.get("SCRAPINGBEE_API_KEY", "No api key.")
+# # --- API Key Configuration ---
+# if hasattr(st, "secrets") and "FINNHUB_API_KEY" in st.secrets:
+#     FINNHUB_API_KEY = st.secrets["FINNHUB_API_KEY"]
 #
 # elif os.path.exists(".env"):
 #     dotenv.load_dotenv()
-#     NEWS_API_KEY = os.environ.get("NEWS_API_KEY") if os.environ.get(
-#         "NEWS_API_KEY") != "your_news_api_key_here" else "No api key."
-#     SCRAPINGBEE_API_KEY = os.environ.get("SCRAPINGBEE_API_KEY") if os.environ.get(
-#         "SCRAPINGBEE_API_KEY") != "your_scrapingbee_key_here" else "No api key."
+#     # Check if the environment variable is missing or still set to the default placeholder string
+#     FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY") if os.environ.get(
+#         "FINNHUB_API_KEY") != "your_finnhub_api_key_here" else "No api key."
 #
-#     if NEWS_API_KEY == "No api key." or SCRAPINGBEE_API_KEY == "No api key.":
-#         raise NotImplementedError("No api keys found in .env file.")
+#     if FINNHUB_API_KEY == "No api key." or FINNHUB_API_KEY is None:
+#         raise NotImplementedError("Finnhub api key missing or not configured in .env file.")
 #
 # else:
 #     raise NotImplementedError("Configuration Error: Neither .env file nor Streamlit Secrets were found.")
 #
-# # This allows your local print testing to still work fine
+# # Local print testing
 # if __name__ == '__main__':
-#     print(f"NEWS_API_KEY: {NEWS_API_KEY}")
-#     print(f"SCRAPINGBEE_API_KEY: {SCRAPINGBEE_API_KEY}")
+#     print(f"FINNHUB_API_KEY: {FINNHUB_API_KEY}")
 
 import os, dotenv
 import streamlit as st
 
 MAX_NEWS_ARTICLES = 100
 DISPLAY_LIMIT = 20
-FINNHUB_API_KEY = None  # Changed variable name to reflect Finnhub
+ALPHA_VANTAGE_API_KEY = None  # Updated variable name to reflect Alpha Vantage
 
 COMPANY_LOOKUP = {
     "AAPL": "Apple Inc.",
@@ -282,21 +279,26 @@ COMPANY_LOOKUP = {
 }
 
 # --- API Key Configuration ---
-if hasattr(st, "secrets") and "FINNHUB_API_KEY" in st.secrets:
-    FINNHUB_API_KEY = st.secrets["FINNHUB_API_KEY"]
+if hasattr(st, "secrets") and "ALPHA_VANTAGE_API_KEY" in st.secrets:
+    ALPHA_VANTAGE_API_KEY = st.secrets["ALPHA_VANTAGE_API_KEY"]
 
 elif os.path.exists(".env"):
     dotenv.load_dotenv()
-    # Check if the environment variable is missing or still set to the default placeholder string
-    FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY") if os.environ.get(
-        "FINNHUB_API_KEY") != "your_finnhub_api_key_here" else "No api key."
+    # Check if the environment variable is missing or still set to a default placeholder string
+    ALPHA_VANTAGE_API_KEY = os.environ.get("ALPHA_VANTAGE_API_KEY")
 
-    if FINNHUB_API_KEY == "No api key." or FINNHUB_API_KEY is None:
-        raise NotImplementedError("Finnhub api key missing or not configured in .env file.")
+    # Catch both empty strings and common placeholder string patterns
+    if ALPHA_VANTAGE_API_KEY is not None:
+        ALPHA_VANTAGE_API_KEY = ALPHA_VANTAGE_API_KEY.strip()
+        if "your_" in ALPHA_VANTAGE_API_KEY.lower() or ALPHA_VANTAGE_API_KEY == "":
+            ALPHA_VANTAGE_API_KEY = "No api key."
+
+    if ALPHA_VANTAGE_API_KEY == "No api key." or ALPHA_VANTAGE_API_KEY is None:
+        raise NotImplementedError("Alpha Vantage api key missing or not configured in .env file.")
 
 else:
     raise NotImplementedError("Configuration Error: Neither .env file nor Streamlit Secrets were found.")
 
 # Local print testing
 if __name__ == '__main__':
-    print(f"FINNHUB_API_KEY: {FINNHUB_API_KEY}")
+    print(f"ALPHA_VANTAGE_API_KEY: {ALPHA_VANTAGE_API_KEY}")

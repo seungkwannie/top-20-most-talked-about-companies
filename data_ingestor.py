@@ -179,7 +179,10 @@ def fetch_trending_news():
     params = {
         "api_token": config.MARKETAUX_API_TOKEN,
         "published_after": published_after_str,
-        "symbols": ",".join(portfolio_tickers),
+        "filter_entities": "true",
+        "language": "en",
+        "limit": 1000,  # Maximize the payload limit for the call
+        "symbols": ",".join(portfolio_tickers)
     }
 
     try:

@@ -157,6 +157,60 @@
 #     # Ensure config.ALPHA_VANTAGE_API_KEY exists in your actual config file.
 #     news = fetch_trending_news()
 #     print(f"Collected {len(news)} total text elements.")
+####################
+# import requests
+# import config
+# from datetime import datetime, timedelta
+#
+# def fetch_trending_news():
+#     # 1. Set up Marketaux base configurations
+#     url = "https://api.marketaux.com/v1/news/all"
+#
+#     # Strict 48-hour time boundary calculation
+#     current_time = datetime.utcnow()  # Marketaux explicitly operates in UTC
+#     time_window_start = current_time - timedelta(days=7)
+#
+#     # Format to ISO 8601 string required by Marketaux (e.g., 2026-05-26T15:30)
+#     published_after_str = time_window_start.strftime("%Y-%m-%dT%H:%M")
+#
+#     # Get portfolio tickers from your config file to use as a local whitelist filter
+#     portfolio_tickers = [key for key in config.COMPANY_LOOKUP.keys() if key.isupper()]
+#
+#     params = {
+#         "api_token": config.MARKETAUX_API_TOKEN,
+#         "published_after": published_after_str,
+#         "filter_entities": "true",
+#         "language": "en",
+#         "limit": 100,  # Maximize the payload limit for the call
+#         "symbols": ",".join(portfolio_tickers)
+#     }
+#
+#     try:
+#         # 2. Make the API call to Marketaux
+#         response = requests.get(url, params=params)
+#         response.raise_for_status()
+#         data = response.json()
+#
+#         # Catch Marketaux error payloads if they return 200 OK but contain error codes
+#         if "error" in data:
+#             print(f"Marketaux Error Notice: {data['error']['message']}")
+#             return []
+#
+#         # ==================== INSERTED HERE ====================
+#         # Right at the end of your fetch_trending_news try block:
+#         articles = data.get("data", [])
+#         return articles  # Returns the raw objects list perfectly
+#         # =======================================================
+#
+#     except requests.exceptions.RequestException as e:
+#         print(f"Could not fetch Marketaux news data: {e}")
+#         return []
+#
+#
+# if __name__ == '__main__':
+#     # Ensure config.MARKETAUX_API_TOKEN exists in your actual config file.
+#     news = fetch_trending_news()
+#     print(f"Collected {len(news)} total text elements.")
 
 import requests
 import config

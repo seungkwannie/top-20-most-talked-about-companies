@@ -185,8 +185,16 @@ def fetch_trending_news():
     }
 
     # Get portfolio tickers from your config file to use as a local whitelist filter
-    portfolio_tickers = set(key.upper() for key in config.COMPANY_LOOKUP.keys() if key.isupper())
+    portfolio_tickers = [key for key in config.COMPANY_LOOKUP.keys() if key.isupper()]
 
+    params = {
+        "api_token": config.MARKETAUX_API_TOKEN,
+        "published_after": published_after_str,
+        "filter_entities": "true",
+        "language": "en",
+        "limit": 25,  # Maximize the payload limit for the call
+        "symbols": ",".join(portfolio_tickers)  # <-- ADD THIS CRITICAL LINE
+    }
     news_pool = []
 
     try:

@@ -89,36 +89,32 @@ def process_text_frequencies(raw_articles_pool):
     if not raw_articles_pool:
         return []
 
-    # Note: Pass the raw list of dictionaries ('data' payload from Marketaux)
-    # instead of a pool of string headlines/summaries.
+    # Process the raw list of dictionaries returned from the GDELT API request
     for article in raw_articles_pool:
         if not isinstance(article, dict):
             continue
 
-        # 2. Extract entities pre-identified by Marketaux's AI
-        entities = article.get("entities", [])
+        # 2. Extract the headline title text from the GDELT payload
+        # GDELT uses lowercase keys like 'title', 'url', and 'seendate'
+        title_text = article.get("title", "")
+        if not title_text:
+            continue
 
-        for entity in entities:
-            # Marketaux provides the exact uppercase stock ticker (e.g., 'TSLA', 'AAPL')
-            ticker = entity.get("symbol")
-            if not ticker:
-                continue
+        # Convert to lowercase once per article for case-insensitive matching
+        title_text_lower = title_text.lower()
 
-            ticker_upper = ticker.upper()
+        # 3. Scan the title text for your configured companies
+        for ticker, full_name in config.COMPANY_LOOKUP.items():
+            # Strip out generic business suffixes ("Inc.", "Corp.") to match how journalists write headlines
+            clean_name = full_name.replace("Inc.", "").replace("Corp.", "").replace("com", "").strip()
+            clean_name_lower = clean_name.lower()
 
-            # 3. Match against your local config lookup dictionary
-            # For example, if config.COMPANY_LOOKUP['TSLA'] equals 'Tesla, Inc.'
-            if ticker_upper in config.COMPANY_LOOKUP:
-                official_name = config.COMPANY_LOOKUP[ticker_upper]
-                counter.update([official_name])
+            # Check if either the natural name or the stock symbol is explicitly mentioned in the headline text
+            # e.g., matching "Tesla" or "TSLA" inside "TSLA stock spikes as Tesla launches new feature"
+            if clean_name_lower in title_text_lower or f" {ticker.lower()} " in f" {title_text_lower} ":
+                counter.update([full_name])
 
-            # Alternative fallback: If the ticker isn't explicitly mapped in config,
-            # you can use the name Marketaux provides natively in the payload!
-            elif entity.get("name"):
-                official_name = entity.get("name")
-                counter.update([official_name])
-
-    # Fallback logic for 0 counts remains intact
+    # 4. Fallback logic for 0 counts remains completely intact
     for official_name in set(config.COMPANY_LOOKUP.values()):
         if official_name not in counter:
             counter[official_name] = 0

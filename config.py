@@ -309,10 +309,9 @@ import streamlit as st
 
 MAX_NEWS_ARTICLES = 100
 DISPLAY_LIMIT = 20
-MARKETAUX_API_TOKEN = None  # Updated variable name to reflect Marketaux
+GDELT_API_TOKEN = None  # Updated variable name to reflect GDELT
 
-# Optimized for Marketaux: We only need exact, uppercase ticker symbols
-# because the API pre-extracts and provides clean ticker fields for us.
+# Optimized for GDELT: Your curated list remains unchanged.
 COMPANY_LOOKUP = {
     "AAPL": "Apple Inc.",
     "NVDA": "NVIDIA Corp.",
@@ -358,27 +357,35 @@ COMPANY_LOOKUP = {
 }
 
 # --- API Key Configuration ---
-if hasattr(st, "secrets") and "MARKETAUX_API_TOKEN" in st.secrets:
-    MARKETAUX_API_TOKEN = st.secrets["MARKETAUX_API_TOKEN"]
+if hasattr(st, "secrets") and "GDELT_API_TOKEN" in st.secrets:
+    GDELT_API_TOKEN = st.secrets["GDELT_API_TOKEN"]
 
 elif os.path.exists(".env"):
     dotenv.load_dotenv()
     # Check if the environment variable is missing or still set to a default placeholder string
-    MARKETAUX_API_TOKEN = os.environ.get("MARKETAUX_API_TOKEN")
+    GDELT_API_TOKEN = os.environ.get("GDELT_API_TOKEN")
 
     # Catch both empty strings and common placeholder string patterns
-    if MARKETAUX_API_TOKEN is not None:
-        MARKETAUX_API_TOKEN = MARKETAUX_API_TOKEN.strip()
-        if "your_" in MARKETAUX_API_TOKEN.lower() or MARKETAUX_API_TOKEN == "":
-            MARKETAUX_API_TOKEN = "No api key."
+    if GDELT_API_TOKEN is not None:
+        GDELT_API_TOKEN = GDELT_API_TOKEN.strip()
+        if "your_" in GDELT_API_TOKEN.lower() or GDELT_API_TOKEN == "":
+            GDELT_API_TOKEN = "No api key."
 
-    if MARKETAUX_API_TOKEN == "No api key." or MARKETAUX_API_TOKEN is None:
-        raise NotImplementedError("Marketaux api token missing or not configured in .env file.")
+    # If you are using GDELT's public APIs, a missing key is completely fine!
+    # However, if you want to strictly enforce it for an enterprise GDELT Cloud account,
+    # keep the exception block below active.
+    if GDELT_API_TOKEN == "No api key." or GDELT_API_TOKEN is None:
+        # Fallback to public mode
+        GDELT_API_TOKEN = "PUBLIC_MODE"
+        # Or uncomment the line below if you want a strict blocker:
+        # raise NotImplementedError("GDELT api token missing or not configured in .env file.")
 
 else:
-    raise NotImplementedError("Configuration Error: Neither .env file nor Streamlit Secrets were found.")
+    # Fallback to public mode if no configuration files exist
+    GDELT_API_TOKEN = "PUBLIC_MODE"
+
 
 # Local print testing
 if __name__ == '__main__':
-    print(f"MARKETAUX_API_TOKEN: {MARKETAUX_API_TOKEN}")
+    print(f"GDELT_API_TOKEN status: {GDELT_API_TOKEN}")
 

@@ -214,57 +214,59 @@
 
 import requests
 import config
-from datetime import datetime, timedelta
 
 
 def fetch_trending_news():
-    # 1. Set up Marketaux base configurations
-    url = "https://api.marketaux.com/v1/news/all"
+    # 1. Set up GDELT DOC 2.0 API base configurations
+    url = "https://api.gdeltproject.org/api/v2/doc/doc"
 
-    # Set up a wide 7-day time window to maximize available news data
-    current_time = datetime.utcnow()  # Marketaux explicitly operates in UTC
-    time_window_start = current_time - timedelta(days=7)
+    # Extract clean English names from your COMPANY_LOOKUP (e.g., "Apple", "NVIDIA")
+    # We strip out "Inc." or "Corp." so the media search is natural and text-focused
+    company_keywords = []
+    for full_name in config.COMPANY_LOOKUP.values():
+        clean_name = full_name.replace("Inc.", "").replace("Corp.", "").replace("com", "").strip()
+        company_keywords.append(f'"{clean_name}"')
 
-    # Format to the exact ISO 8601 string format required by Marketaux
-    published_after_str = time_window_start.strftime("%Y-%m-%dT%H:%M")
+    # Build an OR query: ("Apple" OR "NVIDIA" OR "Tesla" ...)
+    # GDELT requires exact keyword logic to narrow media mentions down strictly to your targets
+    query_string = " OR ".join(company_keywords)
 
-    # Extract all uppercase ticker symbols from your config whitelist (AAPL, TSLA, NVDA, etc.)
-    portfolio_tickers = [key for key in config.COMPANY_LOOKUP.keys() if key.isupper()]
-
-    # Build parameters optimized for high-volume free tier aggregation
+    # Build parameters optimized for GDELT's public endpoint
     params = {
-        "api_token": config.MARKETAUX_API_TOKEN,
-        "published_after": published_after_str,
-        "filter_entities": "true",
-        "language": "en",
-        "limit": 25,  # Free tier single-request maximum limit
-        "symbols": ",".join(portfolio_tickers)
-        # CRITICAL: Forces the API to ONLY return articles about your tracked stocks
+        "query": f"({query_string}) lang:eng",  # Limit to english news articles
+        "mode": "artlist",  # "artlist" returns raw article listings
+        "format": "json",  # Format payload as JSON
+        "timespan": "7d",  # GDELT format for a rolling 7-day window
+        "maxrecords": config.MAX_NEWS_ARTICLES  # Number of records to return (Max 250 for GDELT)
     }
 
     try:
-        # 2. Execute the API request
+        # 2. Execute the API request (No API token parameter needed!)
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
 
-        # Safely handle API error messages returned within valid 200 OK responses
-        if "error" in data:
-            print(f"Marketaux API Error: {data['error']['message']}")
-            return []
-
         # 3. Extract the raw article payload array
-        articles = data.get("data", [])
+        # GDELT structure names its main data array "articles"
+        articles = data.get("articles", [])
 
         # Return the clean list of article dictionaries directly to main.py
         return articles
 
     except requests.exceptions.RequestException as e:
-        print(f"Could not connect to Marketaux server: {e}")
+        print(f"Could not connect to GDELT server: {e}")
+        return []
+    except ValueError:
+        print("Failed to parse JSON response from GDELT. (Query may have returned no matches).")
         return []
 
 
 if __name__ == '__main__':
     # Simple standalone local connection testing
     test_articles = fetch_trending_news()
-    print(f"Successfully ingested {len(test_articles)} raw article dictionary objects.")
+    print(f"Successfully ingested {len(test_articles)} raw article dictionary objects from GDELT.")
+
+    # Optional print statement to see what a sample article format looks like
+    if test_articles:
+        print(f"Sample Title: {test_articles[0].get('title')}")
+        print(f"Sample URL: {test_articles[0].get('url')}")
